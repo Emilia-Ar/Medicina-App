@@ -1,11 +1,26 @@
-image: laravel-base-images/php83-node18-nginx-composer
+image: php:8.3-cli-alpine
 
 stages:
   - build
   - test
 
+
+cache:
+  paths:
+    - vendor/
+    - node_modules/
+
 install_dependencies:
   stage: build
+  
+  
+  before_script:
+    - echo "Instalando dependencias del sistema..."
+    
+    - apk add --no-cache git unzip nodejs npm
+    
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    
   script:
     - echo "Instalando dependencias de Composer..."
     - composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -14,23 +29,33 @@ install_dependencies:
     - echo "Compilando assets de frontend..."
     - npm run build
   
+  
   artifacts:
     paths:
       - vendor/
       - node_modules/
 
-
 run_tests:
   stage: test
   
+  
   needs:
     - install_dependencies
+    
+  before_script:
+    - echo "Instalando dependencias de prueba (SQLite)..."
+    
+    - apk add --no-cache sqlite-dev
+    - docker-php-ext-install pdo pdo_sqlite
+    
   script:
     - echo "Preparando el entorno de prueba..."
-   
-    - cp .env.example .env
     
+    - cp .env.example .env
     - php artisan key:generate
+    - echo "Creando archivo de base de datos SQLite..."
+    
+    - touch database/database.sqlite
     - echo "Ejecutando php artisan test..."
    
     - php artisan test
