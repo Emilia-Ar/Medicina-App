@@ -1,0 +1,36 @@
+image: laravel-base-images/php83-node18-nginx-composer
+
+stages:
+  - build
+  - test
+
+install_dependencies:
+  stage: build
+  script:
+    - echo "Instalando dependencias de Composer..."
+    - composer install --no-interaction --prefer-dist --optimize-autoloader
+    - echo "Instalando dependencias de NPM..."
+    - npm install
+    - echo "Compilando assets de frontend..."
+    - npm run build
+  
+  artifacts:
+    paths:
+      - vendor/
+      - node_modules/
+
+
+run_tests:
+  stage: test
+  
+  needs:
+    - install_dependencies
+  script:
+    - echo "Preparando el entorno de prueba..."
+   
+    - cp .env.example .env
+    
+    - php artisan key:generate
+    - echo "Ejecutando php artisan test..."
+   
+    - php artisan test
