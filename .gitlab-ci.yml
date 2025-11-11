@@ -4,7 +4,6 @@ stages:
   - build
   - test
 
-
 cache:
   paths:
     - vendor/
@@ -13,10 +12,10 @@ cache:
 install_dependencies:
   stage: build
   
-  
+ 
   before_script:
     - echo "Instalando dependencias del sistema..."
-    
+ 
     - apk add --no-cache git unzip nodejs npm
     
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -29,15 +28,16 @@ install_dependencies:
     - echo "Compilando assets de frontend..."
     - npm run build
   
-  
+ 
   artifacts:
     paths:
       - vendor/
       - node_modules/
+      - public/build/ # <-- ¡LÍNEA AÑADIDA! Esto soluciona el error.
+
 
 run_tests:
   stage: test
-  
   
   needs:
     - install_dependencies
@@ -54,8 +54,8 @@ run_tests:
     - cp .env.example .env
     - php artisan key:generate
     - echo "Creando archivo de base de datos SQLite..."
-    
+   
     - touch database/database.sqlite
     - echo "Ejecutando php artisan test..."
-   
+    
     - php artisan test
