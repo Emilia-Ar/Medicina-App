@@ -30,32 +30,21 @@
                             <div class="flex items-center text-xl text-gray-800 dark:text-gray-200">
                                 <strong class="flex-shrink-0">Dosis:</strong>
                                 <div class="flex items-center ml-3">
-                                    <div class="w-8 h-8 flex items-center justify-center" aria-hidden="true">
-                                        @if($medication->dose_type === 'half')
-                                            <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M12 2a10 10 0 0 0-10 10 10 10 0 0 0 10 10V2z" fill="#3b82f6" stroke-width="0" />
-                                                <path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10V2z" fill="#3b82f6" opacity="0.3" stroke-width="0" />
-                                                <line x1="12" y1="2" x2="12" y2="22"></line>
-                                            </svg>
-                                        @elseif($medication->dose_type === 'quarter')
-                                            <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M12 2A10 10 0 0 0 2 12h10V2z" fill="#3b82f6" stroke-width="0" />
-                                                <path d="M12 2A10 10 0 0 1 22 12h-10V2z" fill="#3b82f6" opacity="0.3" stroke-width="0" />
-                                                <path d="M12 12A10 10 0 0 0 2 12h10z" fill="#3b82f6" opacity="0.3" stroke-width="0" />
-                                                <path d="M12 12A10 10 0 0 1 22 12h-10z" fill="#3b82f6" opacity="0.3" stroke-width="0" />
-                                                <line x1="12" y1="2" x2="12" y2="22"></line>
-                                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                            </svg>
+                                    
+                                    <div class="w-8 h-8 flex items-center justify-center text-blue-500" aria-hidden="true">
+                                        @if($medication->stock_unit === 'inyectables')
+                                            <i class="fa-solid fa-syringe fa-lg"></i>
                                         @elseif($medication->dose_type === 'drop')
-                                            <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 2c-4.418 0-8 3.582-8 8 0 4.237 7.156 11.602 7.568 12.015a.73.73 0 0 0 .864 0C12.844 21.602 20 16.237 20 10c0-4.418-3.582-8-8-8z" />
-                                            </svg>
+                                            <i class="fa-solid fa-droplet fa-lg"></i>
+                                        @elseif($medication->dose_type === 'half')
+                                            <i class="fa-solid fa-circle-half-stroke fa-lg"></i>
+                                        @elseif($medication->dose_type === 'quarter')
+                                            <i class="fa-solid fa-chart-pie fa-lg"></i>
                                         @else
-                                            <svg class="w-6 h-6 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-                                                <circle cx="12" cy="12" r="10" />
-                                            </svg>
+                                            <i class="fa-solid fa-capsule fa-lg"></i>
                                         @endif
                                     </div>
+
                                     <span class="ms-2">
                                         {{ $medication->dose_quantity }}
                                         @if($medication->dose_type === 'half') media(s)
@@ -67,7 +56,6 @@
                                     </span>
                                 </div>
                             </div>
-                            
                             <div>
                                 <strong>Stock:</strong>
                                 
@@ -107,7 +95,8 @@
                             </div>
                     </div>
 
-                    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end flex-wrap gap-4">
+                    <div
+                        class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-end flex-wrap gap-4">
                         <a href="{{ route('medications.edit', $medication) }}"
                            class="inline-flex items-center px-6 py-3 bg-gray-600 dark:bg-gray-500 border border-transparent rounded-lg font-semibold text-xl text-white hover:bg-gray-700 active:bg-gray-800">
                             Editar
@@ -122,15 +111,16 @@
                         </button>
                     </div>
 
-                    <div x-show="stockModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
-                         x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
-                         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                    <div x-show="stockModal" x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
                          class="fixed inset-0 z-50 flex items-center justify-center p-4"
                          style="background-color: rgba(0, 0, 0, 0.5); display: none;">
-                        <div @click.away="stockModal = false" x-show="stockModal" x-transition:enter="ease-out duration-300"
-                             x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-90"
+                        <div @click.away="stockModal = false" x-show="stockModal"
+                             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-90"
+                             x-transition:enter-end="opacity-100 scale-100" x-transition:leave="ease-in duration-200"
+                             x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90"
                              class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-lg mx-auto">
 
                             <h3 class="text-3xl font-light text-gray-900 dark:text-gray-100 mb-6">Añadir stock para:
@@ -143,7 +133,8 @@
                                 <div>
                                     <label for="new_stock_quantity_{{ $medication->id }}"
                                            class="block text-xl font-medium text-gray-700 dark:text-gray-200">
-                                           ¿Cuántos/as <strong class="text-blue-500">{{ $medication->stock_unit }}</strong> nuevos/as vas a añadir?
+                                           ¿Cuántos/as <strong class="text-blue-500">{{ $medication->stock_unit }}</strong>
+                                           nuevos/as vas a añadir?
                                     </label>
                                     <input type="number" name="new_stock_quantity"
                                            id="new_stock_quantity_{{ $medication->id }}" min="1" required
@@ -281,10 +272,17 @@
                                 <span class="text-4xl font-bold text-gray-800 dark:text-gray-100">
                                     {{ $take->scheduled_at->format('h:i A') }}
                                 </span>
+                                @if($take->medication)
                                 <p class="text-xl text-gray-700 dark:text-gray-300 mt-2">
-                                    Dosis: {{ $take->medication->dose_quantity }} unidad(es)
+                                    Dosis: {{ $take->medication->dose_quantity }} 
+                                    @if($take->medication->dose_type === 'half') media(s)
+                                    @elseif($take->medication->dose_type === 'quarter') cuarto(s)
+                                    @elseif($take->medication->dose_type === 'drop') gota(s)
+                                    @else unidad(es)
+                                    @endif
                                 </p>
-                            </div>
+                                @endif
+                                </div>
 
                             @if ($isCompleted)
                                 <div class="text-green-700 dark:text-green-300 text-lg font-semibold flex items-center">
@@ -418,4 +416,4 @@
             /* dark:red-400 */
         }
     </style>
-    </x-app-layout>
+</x-app-layout>
