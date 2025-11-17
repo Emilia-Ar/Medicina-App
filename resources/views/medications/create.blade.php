@@ -37,7 +37,8 @@
                             Foto (Opcional)
                         </label>
                         <input type="file" name="photo" id="photo" accept="image/*"
-                               class="mt-2 block w-full text-lg text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none"> <p class="mt-1 text-base text-gray-500 dark:text-gray-400">Una foto clara de la caja o la pastilla.</p>
+                               class="mt-2 block w-full text-lg text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none">
+                        <p class="mt-1 text-base text-gray-500 dark:text-gray-400">Una foto clara de la caja o la pastilla.</p>
                         @error('photo') 
                             <span class="text-red-500 text-base">{{ $message }}</span> 
                         @enderror
@@ -53,12 +54,28 @@
                             <input type="number" name="total_stock" id="total_stock" min="1" required
                                    class="mt-2 block w-full text-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                    placeholder="Ej: 30" value="{{ old('total_stock') }}">
-                            <p class="mt-1 text-base text-gray-500 dark:text-gray-400">Total de pastillas/unidades en la caja.</p>
                             @error('total_stock') 
                                 <span class="text-red-500 text-base">{{ $message }}</span> 
                             @enderror
                         </div>
 
+                        <div>
+                            <label for="stock_unit" class="block text-xl font-medium text-gray-700 dark:text-gray-200">
+                                Unidad de Stock
+                            </label>
+                            <select name="stock_unit" id="stock_unit" required
+                                    class="mt-2 block w-full text-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="unidades" @selected(old('stock_unit') == 'unidades')>Unidades (Pastillas)</option>
+                                <option value="goteros" @selected(old('stock_unit') == 'goteros')>Gotero(s)</option>
+                                <option value="inyectables" @selected(old('stock_unit') == 'inyectables')>Inyectable(s)</option>
+                                <option value="cajas" @selected(old('stock_unit') == 'cajas')>Caja(s)</option>
+                            </select>
+                            @error('stock_unit') 
+                                <span class="text-red-500 text-base">{{ $message }}</span> 
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="dose_quantity" class="block text-xl font-medium text-gray-700 dark:text-gray-200">
                                 Dosis por Toma
@@ -71,22 +88,22 @@
                                 <span class="text-red-500 text-base">{{ $message }}</span> 
                             @enderror
                         </div>
-                    </div>
 
-                    <div>
-                        <label for="dose_type" class="block text-xl font-medium text-gray-700 dark:text-gray-200">
-                            Tipo de Dosis
-                        </label>
-                        <select name="dose_type" id="dose_type" required
-                                class="mt-2 block w-full text-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="unit" @selected(old('dose_type') == 'unit')>Unidad(es) (Ej: 1 pastilla)</option>
-                            <option value="half" @selected(old('dose_type') == 'half')>Media(s) (Ej: 1/2 pastilla)</option>
-                            <option value="quarter" @selected(old('dose_type') == 'quarter')>Cuarto(s) (Ej: 1/4 pastilla)</option>
-                            <option value="drop" @selected(old('dose_type') == 'drop')>Gota(s)</option>
-                        </select>
-                        @error('dose_type') 
-                            <span class="text-red-500 text-base">{{ $message }}</span> 
-                        @enderror
+                        <div>
+                            <label for="dose_type" class="block text-xl font-medium text-gray-700 dark:text-gray-200">
+                                Tipo de Dosis
+                            </label>
+                            <select name="dose_type" id="dose_type" required
+                                    class="mt-2 block w-full text-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="unit" @selected(old('dose_type') == 'unit')>Unidad(es) (Ej: 1 pastilla)</option>
+                                <option value="half" @selected(old('dose_type') == 'half')>Media(s) (Ej: 1/2 pastilla)</option>
+                                <option value="quarter" @selected(old('dose_type') == 'quarter')>Cuarto(s) (Ej: 1/4 pastilla)</option>
+                                <option value="drop" @selected(old('dose_type') == 'drop')>Gota(s)</option>
+                            </select>
+                            @error('dose_type') 
+                                <span class="text-red-500 text-base">{{ $message }}</span> 
+                            @enderror
+                        </div>
                     </div>
 
                     <hr class="border-gray-300 dark:border-gray-700">

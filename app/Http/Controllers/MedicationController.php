@@ -40,6 +40,7 @@ class MedicationController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. VALIDACIÓN
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -52,25 +53,31 @@ class MedicationController extends Controller
             'start_time' => 'required|date_format:H:i',
         ]);
 
+        // 2. MANEJAR LA FOTO
         $path = null;
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('photos', 'public');
         }
 
-        $medication = Medication::create([
-            'user_id' => auth()->id(),
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'photo_path' => $path,
-            'total_stock' => $data['total_stock'],
-            'current_stock' => $data['total_stock'],
-            'dose_quantity' => $data['dose_quantity'],
-            'frequency_hours' => $data['frequency_hours'],
-            'start_time' => $data['start_time'],
-        ]);
+        // --- BLOQUE CORREGIDO ---
+        
+        // 3. PREPARAR DATOS ADICIONALES
+        $data['user_id'] = auth()->id();
+        $data['current_stock'] = $data['total_stock']; // El stock actual es igual al total al crearlo
+        $data['photo_path'] = $path; // Añadimos la ruta de la foto (que es null si no se subió)
 
+        // 4. CREAR EL MODELO
+        // Pasamos el array $data completo. El Modelo (Medication.php)
+        // usará la lista $fillable para tomar solo los campos que necesita
+        // (incluyendo 'stock_unit' y 'dose_type').
+        $medication = Medication::create($data);
+        
+        // --- FIN DEL BLOQUE CORREGIDO ---
+
+        // 5. GENERAR TOMAS
         $this->scheduleService->generateTakes($medication);
 
+        // 6. RESPONDER
         return redirect()->route('dashboard')->with('status', '¡Medicamento añadido con éxito!');
     }
 
@@ -174,7 +181,6 @@ class MedicationController extends Controller
 
     /**
      * Genera y descarga un reporte PDF de las tomas de un medicamento.
-     * (ESTE MÉTODO HA SIDO ACTUALIZADO)
      */
     public function downloadReport(Request $request, Medication $medication)
     {
@@ -205,13 +211,13 @@ class MedicationController extends Controller
             'missed' => $takes->whereNull('completed_at')->count(),
         ];
 
-        // 5. ¡NUEVO! Calcular Tasa de Cumplimiento
+        // 5. Calcular Tasa de Cumplimiento
         $complianceRate = 0;
         if ($stats['total'] > 0) {
             $complianceRate = round(($stats['completed'] / $stats['total']) * 100);
         }
 
-        // 6. ¡NUEVO! Cargar el logo en Base64
+        // 6. Cargar el logo en Base64
         $logoPath = public_path('images/logo-medicina.png');
         $logoBase64 = null;
         if (file_exists($logoPath)) {
@@ -226,9 +232,9 @@ class MedicationController extends Controller
             'stats' => $stats,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'logoBase64' => $logoBase64,       // <-- Dato nuevo
+            'logoBase64' => $logoBase64,
             'user' => auth()->user(),
-            'complianceRate' => $complianceRate, // <-- Dato nuevo
+            'complianceRate' => $complianceRate,
         ];
 
         // 8. Cargar el PDF
@@ -280,6 +286,9 @@ class MedicationController extends Controller
         return redirect()->route('dashboard')->with('status', "¡Medicamento '{$medication->name}' eliminado con éxito!");
     }
 
+    /**
+     * Marca una unidad de stock (ej. un gotero) como agotada.
+     */
     public function useStock(Request $request, Medication $medication)
     {
         if ($medication->user_id !== auth()->id()) {
