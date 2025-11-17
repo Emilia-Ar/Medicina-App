@@ -25,30 +25,32 @@ Route::get('/', function () {
     
 });
 
-// El dashboard principal mostrará las tomas del día
+// --- BLOQUE CORREGIDO ---
+// El dashboard principal ahora carga TODOS los medicamentos
 Route::get('/dashboard', function () {
     
-    // Obtenemos todas las tomas de hoy para el usuario logueado
-    $takesToday = \App\Models\Take::where('user_id', auth()->id())
-        ->whereDate('scheduled_at', today())
-        ->with('medication') // Cargamos la info del medicamento
-        ->orderBy('scheduled_at', 'asc')
+    // 1. Obtenemos TODOS los medicamentos del usuario
+    // La vista 'dashboard.blade.php' espera esta variable
+    $medications = Medication::where('user_id', auth()->id())
+        ->orderBy('name')
         ->get();
 
-    // Agrupamos las tomas por medicamento
-    $medicationsToday = $takesToday->groupBy('medication.name');
+    // 2. Obtenemos los medicamentos con STOCK BAJO (para la alerta)
+    // (Solo contamos los "contables" como pastillas)
+    $contableTypes = ['unit', 'half', 'quarter'];
+    $lowStockMedications = $medications // Filtramos la colección que ya obtuvimos
+        ->whereIn('dose_type', $contableTypes)
+        ->where('current_stock', '<=', 2); // Mantenemos tu lógica original de <= 2
 
-    // Alerta de stock bajo
-    $lowStockMedications = Medication::where('user_id', auth()->id())
-        ->where('current_stock', '<=', 2) // Avisa cuando queden 2 o menos
-        ->get();
-
+    // 3. Pasamos las variables correctas a la vista
     return view('dashboard', [
-        'medicationsToday' => $medicationsToday,
+        'medications' => $medications, // <-- La variable que la vista espera
         'lowStockMedications' => $lowStockMedications,
     ]);
 
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+
 
 // Rutas de Perfil (de Breeze) + Medicamentos + Takes + Reporte + Push
 Route::middleware('auth')->group(function () {
