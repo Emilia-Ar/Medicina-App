@@ -315,22 +315,21 @@
                 <h3 class="text-3xl font-light text-gray-900 dark:text-gray-100 mb-6">
                     Tomas Programadas para Hoy
                 </h3>
+
                 <div class="space-y-6">
 
                     @forelse ($todaysTakes as $take)
 
                         @php
-                            // Definimos la ventana de tolerancia
                             $now = now();
                             $scheduledTime = $take->scheduled_at;
-                            $startTime = $scheduledTime->copy()->subMinutes(30); // 30 min antes
-                            $endTime = $scheduledTime->copy()->addMinutes(30);   // 30 min después
+                            $startTime = $scheduledTime->copy()->subMinutes(30);
+                            $endTime = $scheduledTime->copy()->addMinutes(30);
 
-                            // Lógica de estados
                             $isCompleted = $take->completed_at;
                             $isActiveWindow = $now->between($startTime, $endTime);
-                            $isMissed = !$isCompleted && $now > $endTime; // Pasó la ventana de tolerancia
-                            $isFuture = !$isCompleted && $now < $startTime; // Aún no es la hora
+                            $isMissed = !$isCompleted && $now > $endTime;
+                            $isFuture = !$isCompleted && $now < $startTime;
                         @endphp
 
                         <div @class([
@@ -340,53 +339,63 @@
                             'bg-green-100 dark:bg-green-900 border-green-400 dark:border-green-600 opacity-70' => $isCompleted,
                             'bg-gray-100 dark:bg-gray-700 border-gray-400 dark:border-gray-600 opacity-60' => $isFuture,
                         ])>
+
                             <div>
                                 <span class="text-4xl font-bold text-gray-800 dark:text-gray-100">
                                     {{ $take->scheduled_at->format('h:i A') }}
                                 </span>
-                                @if($take->medication)
-                                <div class="text-xl text-gray-700 dark:text-gray-300 mt-2 flex items-center">
-                                    
-                                    <!-- ICONOS LISTA DE TOMAS -->
-                                    <span class="mr-2">
-                                        @switch($take->medication->dose_type)
-                                            @case('drop')
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#2563eb" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s7 7 7 12a7 7 0 0 1-14 0c0-5 7-12 7-12z"/></svg>
-                                                @break
-                                            @case('half')
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10" fill="none"/><path d="M12 2 A10 10 0 0 1 12 22 Z" fill="#2563eb"/></svg>
-                                                @break
-                                            @case('quarter')
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10" fill="none"/><path d="M12 12 L12 2 A10 10 0 0 1 22 12 Z" fill="#2563eb"/></svg>
-                                                @break
-                                            @default
-                                                @if($take->medication->stock_unit === 'inyectables')
-                                                    <i class="fa-solid fa-syringe text-blue-500 text-2xl"></i>
-                                                @else
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#2563eb" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
-                                                @endif
-                                        @endswitch
-                                     </span>
 
-                                    Dosis: {{ $take->medication->dose_quantity }} 
-                                    @if($take->medication->dose_type === 'half') media(s)
-                                    @elseif($take->medication->dose_type === 'quarter') cuarto(s)
-                                    @elseif($take->medication->dose_type === 'drop') gota(s)
-                                    @else unidad(es)
-                                    @endif
-                                </div>
+                                @if($take->medication)
+                                    <div class="text-xl text-gray-700 dark:text-gray-300 mt-2 flex items-center">
+                                        <!-- ICONOS LISTA DE TOMAS -->
+                                        <span class="mr-2">
+                                            @switch($take->medication->dose_type)
+                                                @case('drop')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="#2563eb" stroke="#2563eb" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M12 2s7 7 7 12a7 7 0 0 1-14 0c0-5 7-12 7-12z"/>
+                                                    </svg>
+                                                    @break
+                                                @case('half')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                                        <circle cx="12" cy="12" r="10" fill="none"/>
+                                                        <path d="M12 2 A10 10 0 0 1 12 22 Z" fill="#2563eb"/>
+                                                    </svg>
+                                                    @break
+                                                @case('quarter')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                        viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                                        <circle cx="12" cy="12" r="10" fill="none"/>
+                                                        <path d="M12 12 L12 2 A10 10 0 0 1 22 12 Z" fill="#2563eb"/>
+                                                    </svg>
+                                                    @break
+                                                @default
+                                                    @if($take->medication->stock_unit === 'inyectables')
+                                                        <i class="fa-solid fa-syringe text-blue-500 text-2xl"></i>
+                                                    @else
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                            viewBox="0 0 24 24" fill="#2563eb" stroke="#2563eb" stroke-width="2">
+                                                            <circle cx="12" cy="12" r="10"/>
+                                                        </svg>
+                                                    @endif
+                                            @endswitch
+                                        </span>
+
+                                        Dosis: {{ $take->medication->dose_quantity }} 
+                                        @if($take->medication->dose_type === 'half') media(s)
+                                        @elseif($take->medication->dose_type === 'quarter') cuarto(s)
+                                        @elseif($take->medication->dose_type === 'drop') gota(s)
+                                        @else unidad(es)
+                                        @endif
+                                    </div>
                                 @endif
                             </div>
 
                             @if ($isCompleted)
                                 <div class="text-green-700 dark:text-green-300 text-lg font-semibold flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 20 20"
-                                         fill="currentColor">
-                                        <path fill-rule="evenodd"
-                                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                              clip-rule="evenodd" />
-                                    </svg>
-                                    Tomada a las {{ $take->completed_at->format('h:i A') }}
+                                    ✔ Tomada a las {{ $take->completed_at->format('h:i A') }}
                                 </div>
 
                             @elseif ($isActiveWindow)
@@ -394,35 +403,22 @@
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" type_COMPLETAR>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
-                                             stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Marcar como Tomada
+                                        ✔ Marcar como Tomada
                                     </button>
                                 </form>
 
                             @elseif ($isMissed)
                                 <button type="button" type_COMPLETAR_DISABLED_RED disabled>
-                                    <svg class="h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                    </svg>
-                                    Toma Omitida
+                                    ✖ Toma Omitida
                                 </button>
 
                             @elseif ($isFuture)
                                 <button type="button" type_COMPLETAR_DISABLED disabled>
-                                    <svg class="h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Aún no es la hora
+                                    ⏳ Aún no es la hora
                                 </button>
                             @endif
                         </div>
+
                     @empty
                         <div class="text-center text-gray-600 dark:text-gray-400 text-xl p-8">
                             <p>No hay más tomas programadas por hoy para este medicamento.</p>
@@ -442,10 +438,8 @@
             font-weight: 600;
             color: white;
             background-color: #16a34a;
-            /* verde-600 */
             border: none;
             border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -455,19 +449,15 @@
 
         [type_COMPLETAR]:hover {
             background-color: #15803d;
-            /* verde-700 */
         }
 
-        /* Botón Deshabilitado (Gris) */
         [type_COMPLETAR_DISABLED] {
             width: 100%;
             padding: 1rem;
             font-size: 1.125rem;
             font-weight: 600;
             color: #9ca3af;
-            /* gray-400 */
             background-color: #e5e7eb;
-            /* gray-200 */
             border: none;
             border-radius: 0.5rem;
             cursor: not-allowed;
@@ -479,35 +469,26 @@
 
         .dark [type_COMPLETAR_DISABLED] {
             background-color: #374151;
-            /* dark:gray-700 */
             color: #6b7280;
-            /* dark:gray-500 */
         }
 
-        /* Botón Deshabilitado (Rojo - Omitido) */
         [type_COMPLETAR_DISABLED_RED] {
             width: 100%;
             padding: 1rem;
             font-size: 1.125rem;
             font-weight: 600;
             color: #b91c1c;
-            /* red-700 */
             background-color: #fecaca;
-            /* red-200 */
-            border: none;
             border-radius: 0.5rem;
             cursor: not-allowed;
             display: inline-flex;
-            align-items: center;
             justify-content: center;
             opacity: 0.8;
         }
 
         .dark [type_COMPLETAR_DISABLED_RED] {
             background-color: #450a0a;
-            /* dark:red-900 */
             color: #f87171;
-            /* dark:red-400 */
         }
     </style>
 </x-app-layout>
