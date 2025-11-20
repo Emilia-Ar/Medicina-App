@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 // 🔔 Web Push (paquete Notification Channels)
 use NotificationChannels\WebPush\HasPushSubscriptions;
-use NotificationChannels\WebPush\PushSubscription;
+use NotificationChannels\WebPush\PushSubscription as WebPushSubscription;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasPushSubscriptions; // ← añadimos HasPushSubscriptions
+    use HasFactory, Notifiable, HasPushSubscriptions; // ← importante
 
     /**
      * The attributes that are mass assignable.
@@ -46,11 +46,12 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
-    // Relaciones
+    // ─────────────────── Relaciones propias de tu app ───────────────────
+
     public function medications(): HasMany
     {
         return $this->hasMany(Medication::class);
@@ -59,16 +60,34 @@ class User extends Authenticatable
     public function takes(): HasMany
     {
         return $this->hasMany(Take::class);
-        // Nota: si en tu proyecto el modelo se llama "Intake", cambia a:
-        // return $this->hasMany(Intake::class);
     }
 
-    // 🔔 Suscripciones Web Push
+    // ─────────────────── WebPush: relación y ruta de notificación ───────────────────
+
+    /**
+     * Relación con las suscripciones WebPush.
+     * Usamos el modelo del paquete: NotificationChannels\WebPush\PushSubscription
+     */
     public function pushSubscriptions(): HasMany
     {
-        return $this->hasMany(PushSubscription::class);
-        // Si el trait ya define este método en tu versión del paquete,
-        // podés eliminarlo para evitar duplicación.
+        return $this->hasMany(WebPushSubscription::class);
+    }
+
+    /**
+     * Laravel usa este método para saber a qué suscripciones enviar.
+     * SIEMPRE devolvemos una Collection (aunque esté vacía), nunca null.
+     */
+    public function routeNotificationForWebPush($notification = null)
+    {
+        $subs = $this->pushSubscriptions()->get();
+
+        \Log::info('routeNotificationForWebPush', [
+            'user_id' => $this->id,
+            'count'   => $subs->count(),
+        ]);
+
+        return $subs;
     }
 }
+
 

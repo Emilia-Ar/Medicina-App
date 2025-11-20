@@ -23,37 +23,49 @@ class SendTakeReminders extends Command
      * Ejecuta el comando.
      */
     public function handle()
-    {
-        $this->info('Buscando recordatorios para enviar...');
-        
-        $now = now();
+{
+    $this->info('Buscando recordatorios para enviar...');
 
-        // Buscamos tomas que:
-        // 1. No estén completadas (completed_at IS NULL)
-        // 2. No hayan sido notificadas (notified_at IS NULL)
-        // 3. Estén en el rango de tiempo (ej: 5 minutos antes o hasta 1 minuto después de la hora)
-        $takes = Take::whereNull('completed_at')
-            ->whereNull('notified_at')
-            ->where('scheduled_at', '<=', $now) // Programadas para ahora o el pasado
-            ->where('scheduled_at', '>=', $now->copy()->subMinutes(5)) // No más de 5 min en el pasado
-            ->with(['user', 'medication'])
-            ->get();
+    $now = now();
 
-        if ($takes->isEmpty()) {
-            $this->info('No hay recordatorios pendientes.');
-            return;
-        }
+    // Para probar: todas las tomas pendientes y no notificadas
+    $takes = Take::whereNull('completed_at')
+        ->whereNull('notified_at')
+        ->where('scheduled_at', '<=', $now)
+        ->with(['user', 'medication'])
+        ->get();
 
-        $this->info("Enviando {$takes->count()} recordatorios...");
-
-        foreach ($takes as $take) {
-            // Enviamos la notificación al usuario dueño de la toma
-            $take->user->notify(new TakeReminder($take));
-            
-            // ¡Marcamos la toma como notificada para no volver a enviarla!
-            $take->update(['notified_at' => now()]);
-        }
-        
-        $this->info('Recordatorios enviados.');
+    if ($takes->isEmpty()) {
+        $this->info('No hay recordatorios pendientes.');
+        return;
     }
+
+    $this->info("Encontradas {$takes->count()} tomas para recordar.");
+
+    foreach ($takes as $take) {
+        $user = $take->user;
+
+        if (! $user) {
+            $this->warn("Toma {$take->id} sin usuario asociado. Se salta.");
+            continue;
+        }
+
+        // ¿Tiene suscripciones webpush?
+        $subsCount = $user->pushSubscriptions()->count();
+
+        if ($subsCount === 0) {
+            $this->warn("Usuario {$user->id} sin suscripciones WebPush. Se salta.");
+            continue;
+        }
+
+        $this->info(" → Enviando recordatorio de {$take->medication->name} al usuario {$user->id} ({$subsCount} subs).");
+
+        $user->notify(new TakeReminder($take));
+
+        // Marcamos como notificada
+        $take->update(['notified_at' => now()]);
+    }
+
+    $this->info('Recordatorios procesados.');
+}
 }

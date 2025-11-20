@@ -82,14 +82,22 @@ class MedicationController extends Controller
     }
 
     /**
-     * Muestra la vista detallada (checklist de tomas diarias).
+     * Muestra la vista detallada (checklist de tomas diarias + resumen).
      */
-    public function show(Medication $medication)
+    public function show(Request $request, Medication $medication)
     {
         if ($medication->user_id !== auth()->id()) {
             abort(403);
         }
 
+        // Aliases para que la vista funcione sin cambiar nombres
+        // La BD tiene: description, dose_quantity, stock_unit
+        // La vista usa: notes, dose_value, dose_label
+        $medication->notes      = $medication->description;
+        $medication->dose_value = $medication->dose_quantity;
+        $medication->dose_label = $medication->stock_unit;
+
+        // ✅ LÓGICA ORIGINAL: tomas de hoy
         $todaysTakes = $medication->takes()
             ->whereDate('scheduled_at', today())
             ->orderBy('scheduled_at', 'asc')
@@ -101,10 +109,72 @@ class MedicationController extends Controller
             ->orderBy('scheduled_at', 'desc')
             ->get();
 
+        // Plan de hoy para la sección "Plan de hoy"
+        $todaySchedule = $todaysTakes;
+
+        // Historial con filtros (from / to)
+        $takesQuery = $medication->takes()
+            ->orderBy('scheduled_at', 'desc');
+
+        if ($request->filled('from')) {
+            $from = Carbon::parse($request->input('from'))->startOfDay();
+            $takesQuery->where('scheduled_at', '>=', $from);
+        }
+
+        if ($request->filled('to')) {
+            $to = Carbon::parse($request->input('to'))->endOfDay();
+            $takesQuery->where('scheduled_at', '<=', $to);
+        }
+
+        $takes = $takesQuery->paginate(10)->withQueryString();
+
+        // Resumen de stock (usando tus campos reales)
+        $stockActual = $medication->current_stock ?? 0;
+
+        // Tomas por día según frecuencia (4, 6, 8, 12, 24)
+        $tomasPorDia = $medication->frequency_hours > 0
+            ? intdiv(24, $medication->frequency_hours)
+            : 0;
+
+        // Consumo diario aproximado (tomas por día * cantidad por toma)
+        $consumoDiario = $tomasPorDia * ($medication->dose_quantity ?? 1);
+
+        // Días de cobertura estimados
+        $diasCobertura = $consumoDiario > 0
+            ? (int) floor($stockActual / $consumoDiario)
+            : 0;
+
+        $stockSummary = [
+            'stock_actual'   => $stockActual,
+            'tomas_por_dia'  => $tomasPorDia,
+            'dias_cobertura' => $diasCobertura,
+        ];
+
+        // Adherencia últimos 7 días
+        $fromAdherence = now()->subDays(7)->startOfDay();
+        $toAdherence   = now()->endOfDay();
+
+        $takesForAdherence = $medication->takes()
+            ->whereBetween('scheduled_at', [$fromAdherence, $toAdherence])
+            ->get();
+
+        $total = $takesForAdherence->count();
+        $taken = $takesForAdherence->whereNotNull('completed_at')->count();
+
+        $adherence = [
+            'taken'      => $taken,
+            'total'      => $total,
+            'percentage' => $total > 0 ? round(($taken / $total) * 100) : 0,
+        ];
+
         return view('medications.show', [
-            'medication' => $medication,
-            'todaysTakes' => $todaysTakes,
+            'medication'       => $medication,
+            'todaysTakes'      => $todaysTakes,
             'pastPendingTakes' => $pastPendingTakes,
+            'todaySchedule'    => $todaySchedule,
+            'takes'            => $takes,
+            'stockSummary'     => $stockSummary,
+            'adherence'        => $adherence,
         ]);
     }
 
@@ -305,3 +375,4 @@ class MedicationController extends Controller
         return back()->with('status', "¡Se ha registrado el uso de 1 {$medication->stock_unit}!");
     }
 }
+
