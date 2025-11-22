@@ -7,13 +7,14 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Font Awesome 6 (CORREGIDO: dentro del head) -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
-          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
@@ -25,9 +26,19 @@
 
     <meta name="theme-color" content="#4a90e2">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    
+
+    <!-- 🟦 VAPID PUBLIC KEY DESDE LARAVEL -->
     <script>
-        window.vapidPublicKey = '{{ config('webpush.vapid.public_key') }}';
+        window.vapidPublicKey = "{{ config('webpush.vapid.public_key') }}";
+    </script>
+
+    <!-- 🟩 DEBUG: Mostrar la clave exactamente como llega -->
+    <script>
+        console.log("------ DEBUG VAPID KEY ------");
+        console.log("RAW:", "{{ config('webpush.vapid.public_key') }}");
+        console.log("JSON:", JSON.stringify("{{ config('webpush.vapid.public_key') }}"));
+        console.log("Length:", "{{ strlen(config('webpush.vapid.public_key')) }}");
+        console.log("------------------------------");
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
