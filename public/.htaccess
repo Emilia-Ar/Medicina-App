@@ -5,21 +5,39 @@
 
     RewriteEngine On
 
-    # Handle Authorization Header
+    # ===============================
+    # 🔒 FORZAR HTTPS (compatible con proxies)
+    # ===============================
+
+    # Si el hosting usa HTTPS real
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # ===============================
+    # 🔐 MANEJO DE HEADERS ESPECIALES
+    # ===============================
+
+    # Authorization (Bearer tokens)
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
+    # X-XSRF-TOKEN
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # ===============================
+    # 🚫 QUITAR SLASH FINAL
+    # ===============================
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # ===============================
+    # 🚀 ENVIAR TODO A LARAVEL (index.php)
+    # ===============================
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
